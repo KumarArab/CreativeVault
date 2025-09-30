@@ -1,0 +1,62 @@
+name: creativevault
+description: "View all your creatives in one place"
+publish_to: 'none' 
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.10.0-137.0.dev
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Core Dependencies
+  cupertino_icons: ^1.0.8
+
+  # State Management
+  flutter_riverpod: ^2.5.1
+
+  # File System & Permissions
+  file_picker: ^8.1.2
+  path_provider: ^2.1.4
+  permission_handler: ^11.3.1
+
+  # Image Processing & Analysis
+  image: ^4.2.0
+  crypto: ^3.0.3
+
+  # UI Components
+  flutter_staggered_grid_view: ^0.7.0
+  cached_network_image: ^3.4.1
+  flutter_svg: ^2.0.10+1
+
+  # Animation Support
+  lottie: ^3.1.2
+  rive: ^0.13.13
+
+  # Video Support
+  video_player: ^2.9.1
+  visibility_detector: ^0.4.0+2
+
+  # Utilities
+  path: ^1.9.0
+  mime: ^1.0.5
+  equatable: ^2.0.5
+  shared_preferences: ^2.3.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  
+  flutter_lints: ^6.0.0
+
+
+
+flutter:
+
+  
+  uses-material-design: true
+
+    
