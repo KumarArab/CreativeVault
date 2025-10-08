@@ -1,6 +1,6 @@
 dependencies: \
   /Users/arabkumar/.pub-cache/hosted/pub.dev/rive_common-0.4.15/macos/harfbuzz/src/hb-ot-tag.cc \
-  /Users/arabkumar/CRED/CreativeVault/macos/Pods/Target\ Support\ Files/rive_common/rive_common-prefix.pch \
+  /Users/arabkumar/PERSONAL/CreativeVault/macos/Pods/Target\ Support\ Files/rive_common/rive_common-prefix.pch \
   /Users/arabkumar/.pub-cache/hosted/pub.dev/rive_common-0.4.15/macos/harfbuzz/src/hb.hh \
   /Users/arabkumar/.pub-cache/hosted/pub.dev/rive_common-0.4.15/macos/harfbuzz/src/hb-config.hh \
   /Users/arabkumar/.pub-cache/hosted/pub.dev/rive_common-0.4.15/macos/harfbuzz/src/hb-limits.hh \

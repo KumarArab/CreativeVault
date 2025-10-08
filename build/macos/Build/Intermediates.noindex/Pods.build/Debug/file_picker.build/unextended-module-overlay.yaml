@@ -4,20 +4,20 @@
   'case-sensitive': 'false',
   'roots': [{
     'type': 'directory',
-    'name': "/Users/arabkumar/CRED/CreativeVault/build/macos/Build/Products/Debug/file_picker/file_picker.framework/Modules"
+    'name': "/Users/arabkumar/PERSONAL/CreativeVault/build/macos/Build/Products/Debug/file_picker/file_picker.framework/Modules"
     'contents': [{
       'type': 'file',
       'name': "module.modulemap",
-      'external-contents': "/Users/arabkumar/CRED/CreativeVault/build/macos/Build/Intermediates.noindex/Pods.build/Debug/file_picker.build/unextended-module.modulemap",
+      'external-contents': "/Users/arabkumar/PERSONAL/CreativeVault/build/macos/Build/Intermediates.noindex/Pods.build/Debug/file_picker.build/unextended-module.modulemap",
     }]
     },
     {
     'type': 'directory',
-    'name': "/Users/arabkumar/CRED/CreativeVault/build/macos/Build/Products/Debug/file_picker/file_picker.framework/Headers"
+    'name': "/Users/arabkumar/PERSONAL/CreativeVault/build/macos/Build/Products/Debug/file_picker/file_picker.framework/Headers"
     'contents': [{
       'type': 'file',
       'name': "file_picker-Swift.h",
-      'external-contents': "/Users/arabkumar/CRED/CreativeVault/build/macos/Build/Intermediates.noindex/Pods.build/Debug/file_picker.build/unextended-interface-header.h",
+      'external-contents': "/Users/arabkumar/PERSONAL/CreativeVault/build/macos/Build/Intermediates.noindex/Pods.build/Debug/file_picker.build/unextended-interface-header.h",
     }]
     }]
 }

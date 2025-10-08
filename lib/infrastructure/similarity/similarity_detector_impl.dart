@@ -6,28 +6,46 @@ import '../../core/contracts/similarity_detector_contract.dart';
 import '../../core/models/asset_model.dart';
 import 'image_similarity_detector.dart';
 import 'vector_similarity_detector.dart';
+import 'cached_similarity_detector.dart';
 
 class SimilarityDetectorImpl implements SimilarityDetectorContract {
   SimilarityDetectorImpl()
     : _imageSimilarityDetector = ImageSimilarityDetector(),
+      _cachedSimilarityDetector = CachedSimilarityDetector(),
       _vectorSimilarityDetector = VectorSimilarityDetector();
 
   final ImageSimilarityDetector _imageSimilarityDetector;
+  final CachedSimilarityDetector _cachedSimilarityDetector;
   final VectorSimilarityDetector _vectorSimilarityDetector;
 
   @override
   Future<List<SimilarityResult>> findSimilarAssets(String uploadedAssetPath, List<AssetModel> assetsToCompare) async {
     try {
       print('Finding similar assets for uploaded image: $uploadedAssetPath');
-      print('Comparing against ${assetsToCompare.length} assets');
 
-      // Always treat uploaded asset as image and compare visually against ALL assets
+      // Get directory path for cache lookup
+      final directoryPath = assetsToCompare.isNotEmpty ? path.dirname(assetsToCompare.first.path) : '';
+
+      // Try fast cached search first
+      if (directoryPath.isNotEmpty) {
+        print('Using fast cached similarity search...');
+        final cachedResults = await _cachedSimilarityDetector.findSimilarAssetsFast(uploadedAssetPath, directoryPath);
+
+        if (cachedResults.isNotEmpty) {
+          print('Found ${cachedResults.length} similar assets from cache');
+          cachedResults.sort((a, b) => b.similarity.compareTo(a.similarity));
+          return cachedResults.take(20).toList();
+        }
+      }
+
+      // Fallback to original method if cache fails or no directory
+      print('Cache miss - falling back to real-time comparison against ${assetsToCompare.length} assets');
       final allResults = await _imageSimilarityDetector.findSimilarAssetsVisually(uploadedAssetPath, assetsToCompare);
 
-      // Filter to only show results > 60% (histogram-based algorithm is more accurate)
-      final filteredResults = allResults.where((result) => result.similarity >= 0.60).toList();
+      // Filter to only show results > 70% to catch more potential matches
+      final filteredResults = allResults.where((result) => result.similarity >= 0.70).toList();
 
-      print('Found ${allResults.length} similar assets, ${filteredResults.length} above 60% threshold');
+      print('Found ${allResults.length} similar assets, ${filteredResults.length} above 90% threshold');
 
       filteredResults.sort((a, b) => b.similarity.compareTo(a.similarity));
       return filteredResults.take(20).toList();
@@ -40,7 +58,7 @@ class SimilarityDetectorImpl implements SimilarityDetectorContract {
   @override
   Future<bool> areAssetsIdentical(String assetPath1, String assetPath2) async {
     try {
-      print('Comparing assets visually: $assetPath1 vs $assetPath2');
+      print('Comparing assets for identity: $assetPath1 vs $assetPath2');
 
       // Always use visual comparison (treat as images)
       final similarity = await _imageSimilarityDetector.calculateVisualSimilarity(assetPath1, assetPath2);
@@ -216,6 +234,32 @@ class SimilarityDetectorImpl implements SimilarityDetectorContract {
     }
 
     return matrix[s1.length][s2.length];
+  }
+
+  // Cache management methods
+  @override
+  Future<void> preprocessAssetsInDirectory(String directoryPath, List<AssetModel> assets) async {
+    await _cachedSimilarityDetector.preprocessAssetsInDirectory(directoryPath, assets);
+  }
+
+  @override
+  Future<void> clearCacheForDirectory(String directoryPath) async {
+    await _cachedSimilarityDetector.clearCacheForDirectory(directoryPath);
+  }
+
+  @override
+  Future<bool> needsCacheUpdate(String directoryPath, List<AssetModel> currentAssets) async {
+    return await _cachedSimilarityDetector.needsCacheUpdate(directoryPath, currentAssets);
+  }
+
+  // Additional helper methods
+  Future<void> updateCacheForNewFiles(String directoryPath, List<AssetModel> newAssets) async {
+    await _cachedSimilarityDetector.updateCacheForNewFiles(directoryPath, newAssets);
+  }
+
+  @override
+  Future<void> cleanupDeletedFiles(String directoryPath, List<AssetModel> currentAssets) async {
+    await _cachedSimilarityDetector.cleanupDeletedFiles(directoryPath, currentAssets);
   }
 }
 

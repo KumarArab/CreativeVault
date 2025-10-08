@@ -10,7 +10,7 @@ class ImageSimilarityDetector {
   static const double _exactMatchThreshold = 0.95;
   static const double _nearDuplicateThreshold = 0.85;
   static const double _visuallySimilarThreshold = 0.70;
-  static const double _minSimilarityThreshold = 0.3; // Lower threshold for initial filtering
+  static const double _minSimilarityThreshold = 0.75; // Higher threshold with proper structural analysis
 
   Future<List<SimilarityResult>> findSimilarImages(String targetImagePath, List<AssetModel> imageAssets) async {
     final results = <SimilarityResult>[];
@@ -44,8 +44,11 @@ class ImageSimilarityDetector {
     final targetHashes = await _generateImageHashes(targetImagePath);
 
     if (targetHashes == null) {
+      print('Could not generate hashes for target image: $targetImagePath');
       return results;
     }
+
+    print('Comparing uploaded asset against ${allAssets.length} assets...');
 
     for (final asset in allAssets) {
       try {
@@ -62,11 +65,17 @@ class ImageSimilarityDetector {
         }
 
         if (similarity > _minSimilarityThreshold) {
+          print('Found match: ${asset.name} with similarity ${(similarity * 100).toStringAsFixed(1)}%');
           results.add(
             SimilarityResult(asset: asset, similarity: similarity, matchType: _determineMatchType(similarity)),
           );
+        } else if (similarity > 0.3) {
+          print(
+            'Near match: ${asset.name} with similarity ${(similarity * 100).toStringAsFixed(1)}% (below threshold)',
+          );
         }
       } catch (e) {
+        print('Error comparing with ${asset.name}: $e');
         continue;
       }
     }
@@ -138,15 +147,32 @@ class ImageSimilarityDetector {
     // Calculate color moments similarity
     final colorMomentsSimilarity = _calculateColorMomentsSimilarity(hashes1.colorMoments, hashes2.colorMoments);
 
-    // Weighted combination of all similarity measures
+    // Calculate structural similarity (shape, composition, complexity)
+    final structuralSimilarity = _calculateStructuralSimilarity(hashes1, hashes2);
+
+    // Calculate color similarity
+    final avgColorSimilarity = (redSimilarity + greenSimilarity + blueSimilarity) / 3.0;
+
+    // CRITICAL: Both structural AND color similarity must be reasonable for a match
+    // If either is very poor, the overall similarity should be low
+    if (structuralSimilarity < 0.4 || avgColorSimilarity < 0.3) {
+      // Heavily penalize poor structural or color matches
+      return (structuralSimilarity * avgColorSimilarity * 0.5).clamp(0.0, 1.0);
+    }
+
+    // Weighted combination emphasizing structural similarity
     final compositeSimilarity =
-        (redSimilarity * 0.2) +
-        (greenSimilarity * 0.2) +
-        (blueSimilarity * 0.2) +
-        (grayscaleSimilarity * 0.2) +
-        (colorMomentsSimilarity * 0.2);
+        (structuralSimilarity * 0.50) + // 50% weight on structure/shape
+        (avgColorSimilarity * 0.25) + // 25% weight on color
+        (grayscaleSimilarity * 0.15) + // 15% weight on grayscale
+        (colorMomentsSimilarity * 0.10); // 10% weight on color moments
 
     return compositeSimilarity.clamp(0.0, 1.0);
+  }
+
+  // Public method for cache access
+  Future<ImageHashes?> generateImageHashes(String imagePath) async {
+    return await _generateImageHashes(imagePath);
   }
 
   Future<ImageHashes?> _generateImageHashes(String imagePath) async {
@@ -274,8 +300,8 @@ class ImageSimilarityDetector {
       total2 += hist2[i];
     }
 
-    if (total1 == 0 && total2 == 0) return 1.0;
-    if (total1 == 0 || total2 == 0) return 0.0;
+    if (total1 == 0 && total2 == 0) return 0.0; // Both empty = no similarity
+    if (total1 == 0 || total2 == 0) return 0.0; // One empty = no similarity
 
     // Normalize by the smaller total
     final minTotal = min(total1, total2);
@@ -488,6 +514,175 @@ class ImageSimilarityDetector {
     }
 
     return peakIndex;
+  }
+
+  double _calculateStructuralSimilarity(ImageHashes hashes1, ImageHashes hashes2) {
+    // Analyze structural properties: complexity, distribution, shape characteristics
+
+    // 1. Complexity similarity (entropy-based)
+    final complexity1 = _calculateComplexity(hashes1);
+    final complexity2 = _calculateComplexity(hashes2);
+    final complexitySimilarity = 1.0 - ((complexity1 - complexity2).abs() / max(complexity1, complexity2));
+
+    // 2. Distribution similarity (how pixels are distributed)
+    final distribution1 = _calculateDistribution(hashes1);
+    final distribution2 = _calculateDistribution(hashes2);
+    final distributionSimilarity = 1.0 - ((distribution1 - distribution2).abs() / max(distribution1, distribution2));
+
+    // 3. Shape characteristics (based on grayscale patterns)
+    final shapeSimilarity = _calculateShapeSimilarity(hashes1, hashes2);
+
+    // 4. Color dominance patterns (which colors dominate)
+    final dominanceSimilarity = _calculateDominanceSimilarity(hashes1, hashes2);
+
+    // Weighted combination of structural factors
+    final structuralSimilarity =
+        (complexitySimilarity * 0.30) +
+        (distributionSimilarity * 0.25) +
+        (shapeSimilarity * 0.30) +
+        (dominanceSimilarity * 0.15);
+
+    return structuralSimilarity.clamp(0.0, 1.0);
+  }
+
+  double _calculateComplexity(ImageHashes hashes) {
+    // Calculate entropy as a measure of complexity
+    final totalPixels = hashes.grayscaleHistogram.reduce((a, b) => a + b);
+    if (totalPixels == 0) return 0.0;
+
+    double entropy = 0.0;
+    for (int i = 0; i < hashes.grayscaleHistogram.length; i++) {
+      if (hashes.grayscaleHistogram[i] > 0) {
+        final p = hashes.grayscaleHistogram[i] / totalPixels;
+        entropy -= p * log(p);
+      }
+    }
+
+    return entropy / log(256.0); // Normalize to 0-1
+  }
+
+  double _calculateDistribution(ImageHashes hashes) {
+    // Calculate how evenly distributed the pixels are
+    final totalPixels = hashes.grayscaleHistogram.reduce((a, b) => a + b);
+    if (totalPixels == 0) return 0.0;
+
+    // Calculate variance in histogram
+    final mean = totalPixels / hashes.grayscaleHistogram.length;
+    double variance = 0.0;
+    for (int count in hashes.grayscaleHistogram) {
+      variance += pow(count - mean, 2);
+    }
+    variance /= hashes.grayscaleHistogram.length;
+
+    return sqrt(variance) / mean; // Coefficient of variation
+  }
+
+  double _calculateShapeSimilarity(ImageHashes hashes1, ImageHashes hashes2) {
+    // Compare grayscale patterns that indicate shape
+    final pattern1 = _extractShapePattern(hashes1);
+    final pattern2 = _extractShapePattern(hashes2);
+
+    // Calculate correlation between patterns
+    return _calculatePatternCorrelation(pattern1, pattern2);
+  }
+
+  List<double> _extractShapePattern(ImageHashes hashes) {
+    // Extract key characteristics of the shape pattern
+    final pattern = <double>[];
+
+    // 1. Peak locations (dominant grayscale values)
+    final peaks = _findHistogramPeaks(hashes.grayscaleHistogram);
+    pattern.addAll(peaks.map((p) => p / 255.0));
+
+    // 2. Contrast (difference between light and dark areas)
+    final contrast = _calculateContrast(hashes.grayscaleHistogram);
+    pattern.add(contrast);
+
+    // 3. Symmetry (how symmetric the distribution is)
+    final symmetry = _calculateSymmetry(hashes.grayscaleHistogram);
+    pattern.add(symmetry);
+
+    return pattern;
+  }
+
+  List<int> _findHistogramPeaks(List<int> histogram) {
+    final peaks = <int>[];
+    for (int i = 1; i < histogram.length - 1; i++) {
+      if (histogram[i] > histogram[i - 1] && histogram[i] > histogram[i + 1] && histogram[i] > 10) {
+        peaks.add(i);
+      }
+    }
+    return peaks.take(5).toList(); // Top 5 peaks
+  }
+
+  double _calculateContrast(List<int> histogram) {
+    final total = histogram.reduce((a, b) => a + b);
+    if (total == 0) return 0.0;
+
+    // Calculate standard deviation as contrast measure
+    final mean = total / histogram.length;
+    double variance = 0.0;
+    for (int count in histogram) {
+      variance += pow(count - mean, 2);
+    }
+    return sqrt(variance / histogram.length) / mean;
+  }
+
+  double _calculateSymmetry(List<int> histogram) {
+    // Calculate how symmetric the histogram is around its center
+    final center = histogram.length ~/ 2;
+    double symmetry = 0.0;
+    int comparisons = 0;
+
+    for (int i = 0; i < center; i++) {
+      final left = histogram[i];
+      final right = histogram[histogram.length - 1 - i];
+      if (left > 0 || right > 0) {
+        symmetry += min(left, right) / max(left, right);
+        comparisons++;
+      }
+    }
+
+    return comparisons > 0 ? symmetry / comparisons : 0.0;
+  }
+
+  double _calculatePatternCorrelation(List<double> pattern1, List<double> pattern2) {
+    if (pattern1.isEmpty || pattern2.isEmpty) return 0.0;
+
+    final minLength = min(pattern1.length, pattern2.length);
+    double correlation = 0.0;
+
+    for (int i = 0; i < minLength; i++) {
+      final diff = (pattern1[i] - pattern2[i]).abs();
+      correlation += 1.0 - diff; // Higher when values are closer
+    }
+
+    return correlation / minLength;
+  }
+
+  double _calculateDominanceSimilarity(ImageHashes hashes1, ImageHashes hashes2) {
+    // Compare which color channels dominate
+    final dominance1 = _calculateColorDominance(hashes1);
+    final dominance2 = _calculateColorDominance(hashes2);
+
+    // Calculate similarity of dominance patterns
+    double similarity = 0.0;
+    similarity += 1.0 - (dominance1['red']! - dominance2['red']!).abs();
+    similarity += 1.0 - (dominance1['green']! - dominance2['green']!).abs();
+    similarity += 1.0 - (dominance1['blue']! - dominance2['blue']!).abs();
+
+    return (similarity / 3.0).clamp(0.0, 1.0);
+  }
+
+  Map<String, double> _calculateColorDominance(ImageHashes hashes) {
+    final redTotal = hashes.redHistogram.reduce((a, b) => a + b);
+    final greenTotal = hashes.greenHistogram.reduce((a, b) => a + b);
+    final blueTotal = hashes.blueHistogram.reduce((a, b) => a + b);
+    final total = redTotal + greenTotal + blueTotal;
+
+    if (total == 0) return {'red': 0.0, 'green': 0.0, 'blue': 0.0};
+
+    return {'red': redTotal / total, 'green': greenTotal / total, 'blue': blueTotal / total};
   }
 
   SimilarityMatchType _determineMatchType(double similarity) {

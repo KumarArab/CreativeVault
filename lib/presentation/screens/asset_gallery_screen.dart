@@ -8,7 +8,7 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import '../controllers/app_controller.dart';
 import '../models/app_state.dart';
 import '../widgets/asset_grid_item.dart';
-import '../widgets/similarity_section.dart';
+import '../widgets/shimmer_loading_widget.dart';
 
 class AssetGalleryScreen extends ConsumerStatefulWidget {
   const AssetGalleryScreen({super.key});
@@ -45,10 +45,11 @@ class _AssetGalleryScreenState extends ConsumerState<AssetGalleryScreen> {
           _buildFilterChips(appState, appController),
           Expanded(
             child: ListView(
-              shrinkWrap: true,
               children: [
-                if (appState.uploadedAsset != null) ...[_buildSimilarityResults(appState, appController)],
-                Expanded(child: _buildAssetGrid(filteredAssets)),
+                if (appState.uploadedAsset != null || appState.status == AppStatus.findingSimilarAssets) ...[
+                  _buildSimilarityResults(appState, appController),
+                ],
+                _buildAssetGrid(filteredAssets),
               ],
             ),
           ),
@@ -129,6 +130,23 @@ class _AssetGalleryScreenState extends ConsumerState<AssetGalleryScreen> {
   }
 
   Widget _buildSimilarityResults(AppState appState, AppController appController) {
+    // Show shimmer loading when finding similar assets and no uploaded asset yet
+    if (appState.status == AppStatus.findingSimilarAssets && appState.uploadedAsset == null) {
+      return const SearchResultsShimmerSection(
+        uploadedAsset: '', // Will use shimmer placeholder
+        onClearTap: null,
+      );
+    }
+
+    // Show shimmer loading when finding similar assets but have uploaded asset
+    if (appState.status == AppStatus.findingSimilarAssets && appState.uploadedAsset != null) {
+      return SearchResultsShimmerSection(
+        uploadedAsset: appState.uploadedAsset!.path,
+        onClearTap: () => appController.clearUploadedAsset(),
+      );
+    }
+
+    // Show actual results when loading is complete
     return Container(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -137,7 +155,7 @@ class _AssetGalleryScreenState extends ConsumerState<AssetGalleryScreen> {
           Row(
             children: [
               const Text(
-                'Similarity Results',
+                'Search Results',
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: Color(0xFF1D1D1F)),
               ),
               const Spacer(),
@@ -149,20 +167,101 @@ class _AssetGalleryScreenState extends ConsumerState<AssetGalleryScreen> {
             ],
           ),
           const SizedBox(height: 12),
-          SimilaritySection(
-            title: 'Exact Matches',
-            results: appState.exactMatches,
-            icon: CupertinoIcons.checkmark_circle_fill,
-            color: const Color(0xFF34C759),
-            onAssetTap: (asset) => _showAssetDetails(context, asset),
-          ),
-          SimilaritySection(
-            title: 'Similar Assets',
-            results: appState.similarAssets,
-            icon: CupertinoIcons.search,
-            color: const Color(0xFF007AFF),
-            showSimilarityScore: true,
-            onAssetTap: (asset) => _showAssetDetails(context, asset),
+
+          // Row with uploaded asset and exact matches
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Uploaded Asset (Left side)
+              Container(
+                width: 280,
+                height: 365,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFF007AFF).withValues(alpha: 0.3), width: 2),
+                ),
+                padding: const EdgeInsets.all(16),
+                margin: const EdgeInsets.only(right: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Uploaded Asset',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFF1D1D1F)),
+                    ),
+                    const SizedBox(height: 8),
+                    Expanded(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: AssetGridItem(
+                          asset: appState.uploadedAsset!,
+                          onTap: () => _showAssetDetails(context, appState.uploadedAsset!),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Exact Matches (Right side - Expandable)
+              Expanded(
+                child: ExpansionTile(
+                  initiallyExpanded: true,
+                  tilePadding: const EdgeInsets.symmetric(horizontal: 8),
+                  childrenPadding: const EdgeInsets.all(8),
+                  backgroundColor: Colors.white,
+                  collapsedBackgroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    side: BorderSide(color: const Color(0xFF34C759).withValues(alpha: 0.3), width: 1),
+                  ),
+                  collapsedShape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    side: BorderSide(color: const Color(0xFF34C759).withValues(alpha: 0.3), width: 1),
+                  ),
+                  leading: const Icon(CupertinoIcons.checkmark_circle_fill, size: 18, color: Color(0xFF34C759)),
+                  title: const Text(
+                    'Exact Matches',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFF1D1D1F)),
+                  ),
+                  trailing: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF34C759).withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      '${appState.exactMatches.length}',
+                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Color(0xFF34C759)),
+                    ),
+                  ),
+                  children: [
+                    if (appState.exactMatches.isEmpty)
+                      const Padding(
+                        padding: EdgeInsets.all(16),
+                        child: Text('No exact matches found', style: TextStyle(color: Color(0xFF6E6E73), fontSize: 14)),
+                      )
+                    else
+                      SizedBox(
+                        height: 300,
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: appState.exactMatches.length,
+                          itemBuilder: (context, index) {
+                            final asset = appState.exactMatches[index];
+                            return Container(
+                              width: 250,
+                              margin: const EdgeInsets.only(right: 12),
+                              child: AssetGridItem(asset: asset, onTap: () => _showAssetDetails(context, asset)),
+                            );
+                          },
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       ),
