@@ -16,6 +16,38 @@
 		<data>
 		X7FRExUp84pNeqt3EpGvDojEFn8=
 		</data>
+		<key>Resources/MobileNetV2.mlmodelc/analytics/coremldata.bin</key>
+		<data>
+		WzPdyUsyt7oUK9ZVHyab9EfYiwE=
+		</data>
+		<key>Resources/MobileNetV2.mlmodelc/coremldata.bin</key>
+		<data>
+		g32lUCzKKZxr69oBeCDjH2gU0+4=
+		</data>
+		<key>Resources/MobileNetV2.mlmodelc/metadata.json</key>
+		<data>
+		Ly57Jc7RmJ4BnHbFRJ2JWAxatkU=
+		</data>
+		<key>Resources/MobileNetV2.mlmodelc/model.espresso.net</key>
+		<data>
+		aKIc5oouf7QRSlIOsV3GYOQ4Qoo=
+		</data>
+		<key>Resources/MobileNetV2.mlmodelc/model.espresso.shape</key>
+		<data>
+		uZxk3BBleXh+xszzpBoP1x0mqO8=
+		</data>
+		<key>Resources/MobileNetV2.mlmodelc/model.espresso.weights</key>
+		<data>
+		NwHIGGKfdRkjltiB5wlhyy1fvhU=
+		</data>
+		<key>Resources/MobileNetV2.mlmodelc/model/coremldata.bin</key>
+		<data>
+		AyvVi5cUgezTYZFS+H0JNPDYKgA=
+		</data>
+		<key>Resources/MobileNetV2.mlmodelc/neural_network_optionals/coremldata.bin</key>
+		<data>
+		uA3l0Th1hUHF8FJlrRRKufqG0ds=
+		</data>
 	</dict>
 	<key>files2</key>
 	<dict>
@@ -23,10 +55,10 @@
 		<dict>
 			<key>cdhash</key>
 			<data>
-			Yc9fCMgamYdHgji1X54lI3NYn/o=
+			lXCUKq++tnaTPkOLgJ/FFPHXQMo=
 			</data>
 			<key>requirement</key>
-			<string>cdhash H"61cf5f08c81a9987478238b55f9e252373589ffa"</string>
+			<string>cdhash H"9570942aafbeb676933e438b809fc514f1d740ca"</string>
 		</dict>
 		<key>Frameworks/FlutterMacOS.framework</key>
 		<dict>
@@ -45,6 +77,15 @@
 			</data>
 			<key>requirement</key>
 			<string>cdhash H"0e4319b5dcd6e5498dfeafa9e0d78442df12c42a"</string>
+		</dict>
+		<key>Frameworks/libswift_Concurrency.dylib</key>
+		<dict>
+			<key>cdhash</key>
+			<data>
+			lMyxZwOuFohh+Fcknez4IbkEo/A=
+			</data>
+			<key>requirement</key>
+			<string>cdhash H"94ccb16703ae168861f857249decf821b904a3f0" or cdhash H"2df8f77ca131cd10508992f453212709099ea525"</string>
 		</dict>
 		<key>Frameworks/path_provider_foundation.framework</key>
 		<dict>
@@ -104,10 +145,10 @@
 		<dict>
 			<key>cdhash</key>
 			<data>
-			73Fx84tsX5fYiZfAtCZ1zMl2Tk0=
+			x+pNfRHzT35RvMXqaZY4fz/V4t0=
 			</data>
 			<key>requirement</key>
-			<string>cdhash H"ef7171f38b6c5f97d88997c0b42675ccc9764e4d"</string>
+			<string>cdhash H"c7ea4d7d11f34f7e51bcc5ea6996387f3fd5e2dd"</string>
 		</dict>
 		<key>Resources/AppIcon.icns</key>
 		<dict>
@@ -128,6 +169,62 @@
 			<key>hash2</key>
 			<data>
 			yPAJ1HQLXyqFeqO1cCm7YbZ7esUl15Vi4WuXqNT8Bek=
+			</data>
+		</dict>
+		<key>Resources/MobileNetV2.mlmodelc/analytics/coremldata.bin</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			5q4ePglWx6XUWGzlqkVBGXusQ8EJUnFVgeUsFhXw9lM=
+			</data>
+		</dict>
+		<key>Resources/MobileNetV2.mlmodelc/coremldata.bin</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			eajWelJ62nvxteZCedMpLJQZt1QIUGY6RECkhRxzLIQ=
+			</data>
+		</dict>
+		<key>Resources/MobileNetV2.mlmodelc/metadata.json</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			+BA/9lHPbJuzRc2YNMhXy83jEP3LF0lGItiCHVzKiz4=
+			</data>
+		</dict>
+		<key>Resources/MobileNetV2.mlmodelc/model.espresso.net</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			Yz/4hbq2mhc4mEkXRXMsAR5dpmt7UH2ttPP6I9wmwk4=
+			</data>
+		</dict>
+		<key>Resources/MobileNetV2.mlmodelc/model.espresso.shape</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			zMM+e8rpP0QvvCVsjvadRxLFJVqA4Fq8o7bIxLcrQJk=
+			</data>
+		</dict>
+		<key>Resources/MobileNetV2.mlmodelc/model.espresso.weights</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			wHD64wuSsAgFsWtUhZmh/2ApeNcS0DrouQPokiiABag=
+			</data>
+		</dict>
+		<key>Resources/MobileNetV2.mlmodelc/model/coremldata.bin</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			CJPCiEp21Qvpv+Xxrb6up2khi9N7a6oBM7aTqzbcKdg=
+			</data>
+		</dict>
+		<key>Resources/MobileNetV2.mlmodelc/neural_network_optionals/coremldata.bin</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			LDTOHfI7g4xavyp/ZDfMo9MGftUJ/yXxHfaxG1grUes=
 			</data>
 		</dict>
 	</dict>

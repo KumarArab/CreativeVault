@@ -8,6 +8,7 @@
       "version": "1.0.0+1",
       "dependencies": [
         "cached_network_image",
+        "collection",
         "crypto",
         "cupertino_icons",
         "equatable",
@@ -182,6 +183,11 @@
       ]
     },
     {
+      "name": "collection",
+      "version": "1.19.1",
+      "dependencies": []
+    },
+    {
       "name": "crypto",
       "version": "3.0.6",
       "dependencies": [
@@ -280,11 +286,6 @@
     {
       "name": "meta",
       "version": "1.17.0",
-      "dependencies": []
-    },
-    {
-      "name": "collection",
-      "version": "1.19.1",
       "dependencies": []
     },
     {

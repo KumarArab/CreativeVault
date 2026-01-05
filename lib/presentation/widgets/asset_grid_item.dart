@@ -10,7 +10,7 @@ import 'video_preview_widget.dart';
 
 import '../../core/models/asset_model.dart';
 
-class AssetGridItem extends StatelessWidget {
+class AssetGridItem extends StatefulWidget {
   const AssetGridItem({super.key, required this.asset, this.onTap, this.isSelected = false});
 
   final AssetModel asset;
@@ -18,16 +18,40 @@ class AssetGridItem extends StatelessWidget {
   final bool isSelected;
 
   @override
+  State<AssetGridItem> createState() => _AssetGridItemState();
+}
+
+class _AssetGridItemState extends State<AssetGridItem> {
+  // Cache for expensive computations
+  late final String _assetTypeName;
+  late final String _formattedFileSize;
+  late final IconData _assetTypeIcon;
+  late final Color _assetTypeColor;
+  late final Widget _backgroundWidget;
+
+  @override
+  void initState() {
+    super.initState();
+    // Pre-compute expensive values
+    _assetTypeName = _getAssetTypeName(widget.asset.type);
+    _formattedFileSize = _formatFileSize(widget.asset.size);
+    final iconData = _getAssetTypeIconData(widget.asset.type);
+    _assetTypeIcon = iconData.$1;
+    _assetTypeColor = iconData.$2;
+    _backgroundWidget = _buildContrastBackground();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: widget.onTap,
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected ? const Color(0xFF007AFF) : const Color(0xFFE5E5EA),
-            width: isSelected ? 2 : 1,
+            color: widget.isSelected ? const Color(0xFF007AFF) : const Color(0xFFE5E5EA),
+            width: widget.isSelected ? 2 : 1,
           ),
           boxShadow: [
             BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8, offset: const Offset(0, 2)),
@@ -42,7 +66,7 @@ class AssetGridItem extends StatelessWidget {
               children: [
                 Flexible(
                   child: Container(
-                    constraints: const BoxConstraints(minHeight: 120, maxHeight: 200),
+                    constraints: const BoxConstraints(minHeight: 150, maxHeight: 200),
                     child: ClipRRect(borderRadius: BorderRadius.circular(8), child: _buildAssetPreview()),
                   ),
                 ),
@@ -57,7 +81,7 @@ class AssetGridItem extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        asset.name,
+                        widget.asset.name,
                         style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Color(0xFF1D1D1F)),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -65,19 +89,16 @@ class AssetGridItem extends StatelessWidget {
                       const SizedBox(height: 2),
                       Row(
                         children: [
-                          _buildAssetTypeIcon(),
+                          Icon(_assetTypeIcon, size: 12, color: _assetTypeColor),
                           const SizedBox(width: 4),
                           Text(
-                            _getAssetTypeName(asset.type),
+                            _assetTypeName,
                             style: const TextStyle(fontSize: 10, color: Color(0xFF6E6E73), fontWeight: FontWeight.w500),
                           ),
                           const SizedBox(width: 4),
                           const Text('•', style: TextStyle(fontSize: 10, color: Color(0xFF6E6E73))),
                           const SizedBox(width: 4),
-                          Text(
-                            _formatFileSize(asset.size),
-                            style: const TextStyle(fontSize: 10, color: Color(0xFF6E6E73)),
-                          ),
+                          Text(_formattedFileSize, style: const TextStyle(fontSize: 10, color: Color(0xFF6E6E73))),
                         ],
                       ),
                     ],
@@ -92,7 +113,7 @@ class AssetGridItem extends StatelessWidget {
   }
 
   Widget _buildAssetPreview() {
-    switch (asset.type) {
+    switch (widget.asset.type) {
       case AssetType.image:
         return _buildImagePreview();
       case AssetType.svg:
@@ -113,12 +134,14 @@ class AssetGridItem extends StatelessWidget {
       decoration: BoxDecoration(borderRadius: BorderRadius.circular(8)),
       child: Stack(
         children: [
-          _buildContrastBackground(),
+          _backgroundWidget,
           Align(
             alignment: Alignment.center,
             child: Image.file(
-              File(asset.path),
+              File(widget.asset.path),
               fit: BoxFit.cover,
+              cacheWidth: 200, // Optimize memory usage
+              cacheHeight: 200,
               errorBuilder: (context, error, stackTrace) => _buildErrorPreview(),
             ),
           ),
@@ -132,11 +155,11 @@ class AssetGridItem extends StatelessWidget {
       decoration: BoxDecoration(borderRadius: BorderRadius.circular(8)),
       child: Stack(
         children: [
-          _buildContrastBackground(),
+          _backgroundWidget,
           Align(
             alignment: Alignment.center,
             child: SvgPicture.file(
-              File(asset.path),
+              File(widget.asset.path),
               fit: BoxFit.contain,
               height: 100,
               placeholderBuilder: (context) => const CupertinoActivityIndicator(),
@@ -152,11 +175,11 @@ class AssetGridItem extends StatelessWidget {
       decoration: BoxDecoration(color: const Color(0xFFF8F9FA), borderRadius: BorderRadius.circular(8)),
       child: Stack(
         children: [
-          _buildContrastBackground(),
+          _backgroundWidget,
           Align(
             alignment: Alignment.center,
             child: Lottie.file(
-              File(asset.path),
+              File(widget.asset.path),
               fit: BoxFit.contain,
               errorBuilder: (context, error, stackTrace) => _buildLottieIcon(),
             ),
@@ -171,10 +194,10 @@ class AssetGridItem extends StatelessWidget {
       decoration: BoxDecoration(color: const Color(0xFFF8F9FA), borderRadius: BorderRadius.circular(8)),
       child: Stack(
         children: [
-          _buildContrastBackground(),
+          _backgroundWidget,
           Align(
             alignment: Alignment.center,
-            child: RiveAnimation.file(asset.path, fit: BoxFit.contain, onInit: (artboard) {}),
+            child: RiveAnimation.file(widget.asset.path, fit: BoxFit.contain, onInit: (artboard) {}),
           ),
         ],
       ),
@@ -183,8 +206,8 @@ class AssetGridItem extends StatelessWidget {
 
   Widget _buildVideoPreview() {
     return VideoPreviewWidget(
-      videoPath: asset.path,
-      uniqueKey: '${asset.path}_${asset.lastModified.millisecondsSinceEpoch}',
+      videoPath: widget.asset.path,
+      uniqueKey: '${widget.asset.path}_${widget.asset.lastModified.millisecondsSinceEpoch}',
     );
   }
 
@@ -209,43 +232,27 @@ class AssetGridItem extends StatelessWidget {
     );
   }
 
-  Widget _buildAssetTypeIcon() {
-    IconData icon;
-    Color color;
-
-    switch (asset.type) {
+  // Helper method to get icon data (returns tuple)
+  (IconData, Color) _getAssetTypeIconData(AssetType type) {
+    switch (type) {
       case AssetType.image:
-        icon = CupertinoIcons.photo;
-        color = const Color(0xFF34C759);
-        break;
+        return (CupertinoIcons.photo, const Color(0xFF34C759));
       case AssetType.svg:
-        icon = CupertinoIcons.triangle;
-        color = const Color(0xFF007AFF);
-        break;
+        return (CupertinoIcons.triangle, const Color(0xFF007AFF));
       case AssetType.lottie:
-        icon = CupertinoIcons.play_circle;
-        color = const Color(0xFFFF9500);
-        break;
+        return (CupertinoIcons.play_circle, const Color(0xFFFF9500));
       case AssetType.rive:
-        icon = CupertinoIcons.play_rectangle;
-        color = const Color(0xFF5856D6);
-        break;
+        return (CupertinoIcons.play_rectangle, const Color(0xFF5856D6));
       case AssetType.video:
-        icon = CupertinoIcons.videocam_fill;
-        color = const Color(0xFFFF2D92);
-        break;
+        return (CupertinoIcons.videocam_fill, const Color(0xFFFF2D92));
       case AssetType.unknown:
-        icon = CupertinoIcons.question;
-        color = const Color(0xFF8E8E93);
-        break;
+        return (CupertinoIcons.question, const Color(0xFF8E8E93));
     }
-
-    return Icon(icon, size: 12, color: color);
   }
 
   Widget _buildContrastBackground() {
     // Smart background selection for better visibility
-    final fileName = asset.name.toLowerCase();
+    final fileName = widget.asset.name.toLowerCase();
 
     // Check for common patterns that indicate light/white content
     final lightPatterns = ['white', 'light', 'bright', 'logo_light', 'icon_light', 'outline', 'stroke'];

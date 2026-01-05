@@ -1,16 +1,13 @@
 import '../models/asset_model.dart';
 
 abstract class SimilarityDetectorContract {
-  Future<List<SimilarityResult>> findSimilarAssets(
-    String uploadedAssetPath,
-    List<AssetModel> assetsToCompare,
-  );
+  Future<List<SimilarityResult>> findSimilarAssets(String uploadedAssetPath, List<AssetModel> assetsToCompare);
 
   Future<bool> areAssetsIdentical(String assetPath1, String assetPath2);
 
   Future<double> calculateSimilarity(String assetPath1, String assetPath2);
 
-  Future<String> generateAssetHash(String assetPath);
+  Future<String?> generateAssetHash(String assetPath);
 
   // Cache management methods
   Future<void> preprocessAssetsInDirectory(String directoryPath, List<AssetModel> assets);

@@ -303,11 +303,13 @@ typedef unsigned int swift_uint4  __attribute__((__ext_vector_type__(4)));
 
 #if defined(__OBJC__)
 @class NSApplication;
+@class NSNotification;
 
 SWIFT_CLASS("_TtC13creativevault11AppDelegate")
 @interface AppDelegate : FlutterAppDelegate
 - (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication * _Nonnull)sender SWIFT_WARN_UNUSED_RESULT;
 - (BOOL)applicationSupportsSecureRestorableState:(NSApplication * _Nonnull)app SWIFT_WARN_UNUSED_RESULT;
+- (void)applicationDidFinishLaunching:(NSNotification * _Nonnull)notification;
 - (nonnull instancetype)init OBJC_DESIGNATED_INITIALIZER;
 @end
 

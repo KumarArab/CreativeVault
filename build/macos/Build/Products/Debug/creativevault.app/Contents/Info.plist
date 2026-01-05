@@ -44,6 +44,8 @@
 	<string>1620</string>
 	<key>DTXcodeBuild</key>
 	<string>16C5032a</string>
+	<key>LSBundleContainsCoreMLmlmodelc</key>
+	<true/>
 	<key>LSMinimumSystemVersion</key>
 	<string>10.15</string>
 	<key>NSHumanReadableCopyright</key>

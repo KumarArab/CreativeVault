@@ -7,11 +7,7 @@ import 'presentation/screens/asset_gallery_screen.dart';
 import 'presentation/screens/path_selection_screen.dart';
 
 void main() {
-  runApp(
-    const ProviderScope(
-      child: CreativeVaultApp(),
-    ),
-  );
+  runApp(const ProviderScope(child: CreativeVaultApp()));
 }
 
 class CreativeVaultApp extends StatelessWidget {
@@ -20,13 +16,9 @@ class CreativeVaultApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'CreativeVault',
+      title: 'Creative Vault',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        fontFamily: '.SF UI Text',
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-      ),
+      theme: ThemeData.dark(),
       home: const AppShell(),
     );
   }
@@ -39,9 +31,7 @@ class AppShell extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final appState = ref.watch(appControllerProvider);
 
-    return Scaffold(
-      body: _buildCurrentScreen(appState),
-    );
+    return Scaffold(body: _buildCurrentScreen(appState));
   }
 
   Widget _buildCurrentScreen(AppState appState) {
